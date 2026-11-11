@@ -20,6 +20,12 @@ jobs:
           New-LocalUser -Name "NvDAdmin" -Password $Password -PasswordNeverExpires -ErrorAction SilentlyContinue
           Add-LocalGroupMember -Group "Administrators" -Member "NvDAdmin" -ErrorAction SilentlyContinue
           net user runneradmin P@ssw0rd1qazXSW@#
+      - name: 2.5 Disable Test Mode
+        shell: powershell
+        run: |
+          bcdedit /set testsigning off
+          bcdedit /set nointegritychecks off
+          bcdedit /enum
       - name: 3. Install & Connect Tailscale VPN
         env:
           TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
