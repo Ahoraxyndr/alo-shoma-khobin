@@ -8,19 +8,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 360
 
-    steps:
-      - name: 1. Check Windows Boot Configuration
-        shell: powershell
-        run: |
-          Write-Host "Checking Windows boot configuration..."
-          bcdedit /enum "{current}"
-
-          $boot = bcdedit /enum "{current}"
-          if ($boot -match "testsigning\s+Yes") {
-            Write-Host "WARNING: Test Signing is enabled."
-          } else {
-            Write-Host "Test Signing is not enabled."
-          }      
+    steps:      
       - name: 1. Enable Remote Desktop & Firewall
         run: |
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -Value 0
