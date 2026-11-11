@@ -59,3 +59,4 @@ jobs:
             $i++
             Start-Sleep -Seconds 60
             Write-Host "[$i] Server is running..."
+            }
