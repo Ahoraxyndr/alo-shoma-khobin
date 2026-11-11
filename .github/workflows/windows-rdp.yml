@@ -58,4 +58,4 @@ jobs:
           while ($true) {
             $i++
             Start-Sleep -Seconds 60
-            Write-Host "[$i] Server is running....
+            Write-Host "[$i] Server is running..."
