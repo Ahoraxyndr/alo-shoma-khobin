@@ -153,7 +153,29 @@ jobs:
           Write-Host "  Username     : AhoraXY" -ForegroundColor Yellow
           Write-Host "  Password     : @Erfangamer12" -ForegroundColor Yellow
           Write-Host "  >> Open mstsc and connect to: $ts_ip" -ForegroundColor Magenta
-          Write-Host "==================================================" -ForegroundColor Green
+          Write-Host "==================================================" -ForegroundColor 
+      - name: 3.5 Recover Tailscale
+        shell: powershell
+        env:
+          TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
+        run: |
+          $ErrorActionPreference = "Continue"
+
+          $ts = "C:\Program Files\Tailscale\tailscale.exe"
+
+          Start-Service Tailscale -ErrorAction SilentlyContinue
+          Start-Sleep -Seconds 10
+
+          $status = & $ts status 2>&1
+          Write-Host $status
+
+          if ($LASTEXITCODE -ne 0) {
+              & $ts up --authkey="$env:TAILSCALE_AUTHKEY" --hostname="github-rdp-server"
+              Start-Sleep -Seconds 10
+          }
+
+          Write-Host "Tailscale IP:"
+          & $ts ip -4
       - name: 4. Keep Server Alive
         shell: powershell
         run: |
