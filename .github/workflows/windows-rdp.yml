@@ -6,6 +6,14 @@ on:
 jobs:
   build:
     runs-on: windows-2022
+    timeout-minutes: 360
+    steps:
+      - name: Verify Actual Runner
+        shell: powershell
+        run: |
+          Get-CimInstance Win32_OperatingSystem |
+            Format-List Caption, Version, BuildNumber
+          hostname        
       - name: Force Disable Test Signing
         shell: powershell
         run: |
@@ -46,15 +54,6 @@ jobs:
           "NTSTATUS: $status"
           "CI Options: 0x{0:X8}" -f $info.Options
           "Test Signing Active: " + [bool]($info.Options -band 0x2)
-    timeout-minutes: 360
-
-    steps:
-      - name: Verify Actual Runner
-        shell: powershell
-        run: |
-          Get-CimInstance Win32_OperatingSystem |
-            Format-List Caption, Version, BuildNumber
-          hostname
       - name: 1. Enable Remote Desktop & Firewall
         run: |
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -Value 0
