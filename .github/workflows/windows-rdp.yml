@@ -5,7 +5,47 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2022
+      - name: Force Disable Test Signing
+        shell: powershell
+        run: |
+          Write-Host "Disabling Test Signing..."
+
+          bcdedit.exe /set '{current}' testsigning off
+          bcdedit.exe /set '{current}' nointegritychecks off
+
+          Write-Host "`n--- BCD STATUS ---"
+          bcdedit.exe /enum '{current}'
+
+          Write-Host "`n--- WINDOWS BUILD ---"
+          Get-ComputerInfo | Select-Object WindowsProductName, WindowsVersion, OsBuildNumber
+
+          Write-Host "`n--- CODE INTEGRITY ---"
+          Add-Type -TypeDefinition @'
+          using System;
+          using System.Runtime.InteropServices;
+
+          public class CIStatus {
+              [StructLayout(LayoutKind.Sequential)]
+              public struct INFO {
+                  public UInt32 Length;
+                  public UInt32 Options;
+              }
+
+              [DllImport("ntdll.dll")]
+              public static extern int NtQuerySystemInformation(
+                  int Class, ref INFO Info, int Length, IntPtr ReturnLength
+              );
+          }
+          '@
+
+          $info = New-Object CIStatus+INFO
+          $info.Length = 8
+          $status = [CIStatus]::NtQuerySystemInformation(103, [ref]$info, 8, [IntPtr]::Zero)
+
+          "NTSTATUS: $status"
+          "CI Options: 0x{0:X8}" -f $info.Options
+          "Test Signing Active: " + [bool]($info.Options -band 0x2)
     timeout-minutes: 360
 
     steps:      
