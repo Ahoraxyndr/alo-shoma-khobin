@@ -16,10 +16,10 @@ jobs:
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 0
       - name: 2. Create Admin Account
         run: |
-          $Password = ConvertTo-SecureString "Erfangamer12@" -AsPlainText -Force
+          $Password = ConvertTo-SecureString "@Erfangamer12" -AsPlainText -Force
           New-LocalUser -Name "AhoraXY" -Password $Password -PasswordNeverExpires -ErrorAction SilentlyContinue
           Add-LocalGroupMember -Group "Administrators" -Member "AhoraXY" -ErrorAction SilentlyContinue
-          net user runneradmin Erfangamer12@
+          net user runneradmin @Erfangamer12
       - name: 2.5 Disable Test Mode
         shell: powershell
         run: |
@@ -48,7 +48,7 @@ jobs:
           Write-Host "  >>> RDP SERVER IS READY! <<<" -ForegroundColor Cyan
           Write-Host "  Tailscale IP : $ts_ip" -ForegroundColor Yellow
           Write-Host "  Username     : AhoraXY" -ForegroundColor Yellow
-          Write-Host "  Password     : Erfangamer12@" -ForegroundColor Yellow
+          Write-Host "  Password     : @Erfangamer12" -ForegroundColor Yellow
           Write-Host "  >> Open mstsc and connect to: $ts_ip" -ForegroundColor Magenta
           Write-Host "==================================================" -ForegroundColor Green
       - name: 4. Keep Server Alive
