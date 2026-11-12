@@ -153,7 +153,7 @@ jobs:
           Write-Host "  Username     : AhoraXY" -ForegroundColor Yellow
           Write-Host "  Password     : @Erfangamer12" -ForegroundColor Yellow
           Write-Host "  >> Open mstsc and connect to: $ts_ip" -ForegroundColor Magenta
-          Write-Host "==================================================" -ForegroundColor 
+          Write-Host "==================================================" -ForegroundColor Green
       - name: 3.5 Recover Tailscale
         shell: powershell
         env:
