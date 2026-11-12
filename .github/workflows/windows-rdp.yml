@@ -20,12 +20,70 @@ jobs:
           New-LocalUser -Name "AhoraXY" -Password $Password -PasswordNeverExpires -ErrorAction SilentlyContinue
           Add-LocalGroupMember -Group "Administrators" -Member "AhoraXY" -ErrorAction SilentlyContinue
           net user runneradmin @Erfangamer12
-      - name: 2.5 Disable Test Mode
+      - name: 2.5 Disable Test Signing and Verify
         shell: powershell
         run: |
-          bcdedit /set testsigning off
-          bcdedit /set nointegritychecks off
-          bcdedit /enum
+          $ErrorActionPreference = "Stop"
+
+          Write-Host "===== DISABLING TEST SIGNING ====="
+
+          bcdedit.exe /set '{current}' testsigning off
+          if ($LASTEXITCODE -ne 0) {
+              throw "Failed to disable testsigning"
+          }
+
+          bcdedit.exe /set '{current}' nointegritychecks off
+          if ($LASTEXITCODE -ne 0) {
+              throw "Failed to disable nointegritychecks"
+          }
+
+          Write-Host "`n===== VERIFY BCD ====="
+          bcdedit.exe /enum '{current}'
+
+          Write-Host "`n===== VERIFY KERNEL CODE INTEGRITY ====="
+
+          Add-Type -TypeDefinition @"
+          using System;
+          using System.Runtime.InteropServices;
+
+          public class KernelCIModeCheck {
+              [StructLayout(LayoutKind.Sequential)]
+              public struct CI_INFO {
+                  public uint Length;
+                  public uint Options;
+              }
+
+              [DllImport("ntdll.dll")]
+              public static extern int NtQuerySystemInformation(
+                  int SystemInformationClass,
+                  ref CI_INFO SystemInformation,
+                  int SystemInformationLength,
+                  IntPtr ReturnLength
+              );
+          }
+          "@
+
+          $ci = New-Object KernelCIModeCheck+CI_INFO
+          $ci.Length = 8
+
+          $status = [KernelCIModeCheck]::NtQuerySystemInformation(
+              103, [ref]$ci, 8, [IntPtr]::Zero
+          )
+
+          if ($status -ne 0) {
+              throw "Could not query kernel Code Integrity status"
+          }
+
+          Write-Host ("CI Options: 0x{0:X8}" -f $ci.Options)
+
+          $testSigning = (($ci.Options -band 2) -ne 0)
+
+          Write-Host "BCD Test Signing: OFF"
+          Write-Host "Running Kernel Test Signing: $testSigning"
+
+          if ($testSigning) {
+              Write-Warning "Test Signing is still active in the current kernel. A reboot is required."
+          }
       - name: 3. Install & Connect Tailscale VPN
         env:
           TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
